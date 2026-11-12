@@ -17,7 +17,8 @@ class AquariumEngineTest {
         assertEquals(1, engine.fishList.size)
         assertEquals(18, engine.bubbles.size)
         assertTrue(engine.isHudVisible)
-        assertEquals(0L, engine.carePoints)
+        assertEquals(1250L, engine.carePoints)
+        assertEquals(25L, engine.diamonds)
     }
 
     @Test

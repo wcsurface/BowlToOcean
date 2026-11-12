@@ -3,6 +3,7 @@ package com.wcsurface.bowltoocean.engine
 import com.wcsurface.bowltoocean.model.AiState
 import com.wcsurface.bowltoocean.model.FishInstance
 import com.wcsurface.bowltoocean.model.FishSpecies
+import com.wcsurface.bowltoocean.model.MaintenanceAction
 import com.wcsurface.bowltoocean.model.TankTier
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -54,9 +55,21 @@ class AquariumEngine(
     val bubbles: MutableList<Bubble> = mutableListOf()
     val glassRipples: MutableList<GlassRipple> = mutableListOf()
     val floatingTexts: MutableList<FloatingText> = mutableListOf()
+    val unlockedTanks: MutableList<TankTier> = mutableListOf(TankTier.BOWL)
 
     var isHudVisible: Boolean = true
-    var carePoints: Long = 0L
+    var carePoints: Long = 1250L
+    var diamonds: Long = 25L
+    var playerLevel: Int = 3
+    var playerXp: Int = 180
+    var xpToNextLevel: Int = 300
+    var bioLoadBalance: Float = 85f // 0% to 100%
+    var dailyBonusClaimable: Boolean = true
+    var feedCooldownTimer: Float = 0f
+
+    var isMaintainDrawerOpen: Boolean = false
+    var isShopSheetOpen: Boolean = false
+    var isSettingsOpen: Boolean = false
     var causticsPhase: Float = 0f
 
     init {
@@ -100,13 +113,33 @@ class AquariumEngine(
     fun setTankTier(tier: TankTier) {
         if (currentTankTier != tier) {
             currentTankTier = tier
+            if (!unlockedTanks.contains(tier)) {
+                unlockedTanks.add(tier)
+            }
             spawnDefaultFishForTier(tier)
         }
+    }
+
+    fun unlockAndSwitchTank(tier: TankTier): Boolean {
+        if (unlockedTanks.contains(tier)) {
+            setTankTier(tier)
+            return true
+        }
+        if (carePoints >= tier.cost) {
+            carePoints -= tier.cost
+            unlockedTanks.add(tier)
+            setTankTier(tier)
+            return true
+        }
+        return false
     }
 
     fun addFish(speciesId: String): Boolean {
         if (fishList.size >= currentTankTier.maxFish) return false
         val species = FishSpecies.getSpeciesById(speciesId) ?: return false
+        if (carePoints < species.cost) return false
+
+        carePoints -= species.cost
         fishList.add(
             FishInstance(
                 instanceId = "fish_${species.id}_${System.currentTimeMillis()}",
@@ -115,6 +148,78 @@ class AquariumEngine(
                 y = 0.5f,
                 facingRight = true,
                 aiState = AiState.CRUISING
+            )
+        )
+        return true
+    }
+
+    fun claimDailyBonus(viewportWidth: Float = 1080f, viewportHeight: Float = 1920f) {
+        if (!dailyBonusClaimable) return
+        dailyBonusClaimable = false
+        carePoints += 250L
+        diamonds += 5L
+
+        floatingTexts.add(
+            FloatingText(
+                id = "txt_daily_${System.currentTimeMillis()}",
+                text = "+250 Care Points & +5 Diamonds!",
+                x = viewportWidth * 0.5f,
+                y = viewportHeight * 0.35f
+            )
+        )
+    }
+
+    fun triggerFeedAction(viewportWidth: Float = 1080f, viewportHeight: Float = 1920f) {
+        if (feedCooldownTimer > 0f) return
+        feedCooldownTimer = 2.0f // 2 second cooldown
+
+        // Drop 3 food pellets along top water surface
+        dropFoodPellet(0.35f, 0.12f)
+        dropFoodPellet(0.50f, 0.10f)
+        dropFoodPellet(0.65f, 0.14f)
+
+        bioLoadBalance = (bioLoadBalance - 1.5f).coerceAtLeast(0f)
+
+        floatingTexts.add(
+            FloatingText(
+                id = "txt_feed_${System.currentTimeMillis()}",
+                text = "Food Dropped!",
+                x = viewportWidth * 0.5f,
+                y = viewportHeight * 0.25f
+            )
+        )
+    }
+
+    fun performMaintenanceAction(
+        action: MaintenanceAction,
+        viewportWidth: Float = 1080f,
+        viewportHeight: Float = 1920f
+    ): Boolean {
+        if (carePoints < action.cost) return false
+
+        carePoints -= action.cost
+        carePoints += action.rewardPoints
+        playerXp += 35
+
+        if (playerXp >= xpToNextLevel) {
+            playerLevel += 1
+            playerXp -= xpToNextLevel
+            xpToNextLevel += 150
+        }
+
+        bioLoadBalance = (bioLoadBalance + action.cleanBonus).coerceAtMost(100f)
+
+        // Spawn clean sweep particle animation lines
+        glassRipples.add(GlassRipple(x = viewportWidth * 0.3f, y = viewportHeight * 0.4f))
+        glassRipples.add(GlassRipple(x = viewportWidth * 0.5f, y = viewportHeight * 0.5f))
+        glassRipples.add(GlassRipple(x = viewportWidth * 0.7f, y = viewportHeight * 0.6f))
+
+        floatingTexts.add(
+            FloatingText(
+                id = "txt_maint_${System.currentTimeMillis()}",
+                text = "${action.name}: +${action.rewardPoints} Care Points!",
+                x = viewportWidth * 0.5f,
+                y = viewportHeight * 0.45f
             )
         )
         return true
@@ -154,6 +259,11 @@ class AquariumEngine(
         // 2. Toggle clean-view HUD overlay
         isHudVisible = !isHudVisible
 
+        // Close side drawers when entering clean view
+        if (!isHudVisible) {
+            isMaintainDrawerOpen = false
+        }
+
         // 3. Startle nearby fish within tap radius
         val normTapX = if (viewportWidth > 0f) tapXPx / viewportWidth else 0.5f
         val normTapY = if (viewportHeight > 0f) tapYPx / viewportHeight else 0.5f
@@ -184,6 +294,13 @@ class AquariumEngine(
         // Clamp deltaTime to 0.05f max to prevent physics explosions
         val dt = rawDeltaTime.coerceAtMost(0.05f)
         causticsPhase += dt * 1.2f
+
+        if (feedCooldownTimer > 0f) {
+            feedCooldownTimer = (feedCooldownTimer - dt).coerceAtLeast(0f)
+        }
+
+        // Slowly degrade bio-load balance over time
+        bioLoadBalance = (bioLoadBalance - dt * 0.15f).coerceIn(10f, 100f)
 
         // --- Update Glass Ripples ---
         val rippleIter = glassRipples.iterator()
@@ -393,7 +510,4 @@ class AquariumEngine(
             }
         }
     }
-
-    private fun Double.sToFloat(): Float = this.toFloat()
-    private fun Int.sToFloat(): Float = this.toFloat()
 }
