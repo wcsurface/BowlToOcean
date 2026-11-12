@@ -103,11 +103,13 @@ fun drawFishMesh(
         indices.add(idx)
     }
 
+    val colors = List(numVertices) { Color.White }
+
     val vertices = Vertices(
         vertexMode = VertexMode.TriangleStrip,
         positions = positions,
         textureCoordinates = uvs,
-        colors = emptyList(),
+        colors = colors,
         indices = indices
     )
 
