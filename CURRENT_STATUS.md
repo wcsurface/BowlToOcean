@@ -12,19 +12,18 @@
 
 ---
 
-## Current Phase: Direct Drawables, Visible Hero Fish & Fixed Top HUD Layout
+## Current Phase: Direct Resource Binding, White Pixel Stripping & Bowl Clipping Complete
 
-### Implemented Fixes & Overhauls
-- [x] **Direct Resource Loading & Background Artwork ([`res/drawable-nodpi/bg_tank_1_bowl.png`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/res/drawable-nodpi/bg_tank_1_bowl.png))**:
-  - Saved high-resolution PNG drawables directly in `res/drawable-nodpi/`.
-  - Draw background `bg_tank_1_bowl` to fill 100% of the screen with `ContentScale.Crop`.
-- [x] **Betta Visibility & Pixel-Space UV Texture Mesh Fix ([`ui/AquariumCanvas.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/AquariumCanvas.kt))**:
-  - Resolved texture invisibility in `Canvas.drawVertices` by scaling UV texture coordinates to **pixel space** ($[0 \dots \text{bitmapWidth}] \times [0 \dots \text{bitmapHeight}]$).
-  - Prominent hero size ($\sim 240\text{dp}$ wide) Betta spawned at center ($0.50f, 0.48f$).
-  - Added white background pixel stripper in [`AssetResolver.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/util/AssetResolver.kt) ($R > 240 \land G > 240 \land B > 240 \implies \text{alpha} = 0$).
-  - [`AquariumEngine.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/engine/AquariumEngine.kt): Added `ensureStarterFishActive()` to guarantee 1 active Royal Blue Halfmoon Betta strictly clamped inside the central glass bowl.
-- [x] **Top HUD Bar Layout Overlap Fix ([`ui/AquariumHud.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/AquariumHud.kt))**:
-  - Fixed center `Lv. 3` XP progress bar text expanding layout by constraining column width (`width(70.dp)`), removing `fillMaxWidth()`, and setting `padding(end = 56.dp)`.
-  - Restored clean visibility for Tank Status / Bio-Load gauge and Settings gear button on the right edge without overlapping the Daily Bonus gift icon.
+### Root Cause Fixes Implemented
+- [x] **Direct Resource ID Binding ([`AquariumModels.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/model/AquariumModels.kt))**:
+  - Bound `@DrawableRes val backgroundResId = R.drawable.bg_tank_1_bowl` directly to `TankTier.BOWL`.
+  - Bound `@DrawableRes val drawableResId = R.drawable.fish_betta_blue` directly to `FishSpecies.betta_blue`.
+- [x] **Direct BitmapFactory Decoding & White Pixel Removal ([`AssetResolver.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/util/AssetResolver.kt))**:
+  - Deleted the geometric circle bowl & blue oval fallback drawing code.
+  - Loads real bitmaps directly via `BitmapFactory.decodeResource(context.resources, resId, ...)` with `ARGB_8888`.
+  - Automatically loops through pixels once and strips near-white background pixels (`red > 235 && green > 235 && blue > 235`) to `Color.TRANSPARENT`.
+- [x] **Orientation & Bowl Circle Clipping ([`ui/AquariumCanvas.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/AquariumCanvas.kt))**:
+  - Corrected raw Betta orientation ($u = 0$ is Head on left, $u = 1$ is Tail on right; head is kept steady while $u^{1.6}$ undulates the tail).
+  - Clipped caustic light shafts and rising air bubbles strictly inside the glass bowl circle (`center = (width * 0.5f, height * 0.48f)`, `radius = height * 0.45f`), preventing light spilling onto the room background outside the bowl.
 - [x] **Unit Testing Suite**:
   - All 12 unit tests passing across test suite.
