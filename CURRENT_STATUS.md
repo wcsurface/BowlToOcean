@@ -12,9 +12,10 @@
 
 ---
 
-## Current Phase: Hybrid DataStore + Railway Economy, ViewModel, and CatalogSheet Complete
+## Current Phase: 60 FPS Mesh Engine, Dark-Ocean HUD & Cloud Economy Operational
 
-### Implemented Components
+### Implemented Components & Bug Fixes
+- [x] **Crash Fix**: Resolved `java.lang.IllegalArgumentException: positions and colors lengths must match` in `drawFishMesh` ([`ui/AquariumCanvas.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/AquariumCanvas.kt)) by passing matching color array size (`colors = List(numVertices) { Color.White }`).
 - [x] **Catalog Modal Bottom Sheet ([`ui/CatalogSheet.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/CatalogSheet.kt))**:
   - **Tanks & Exhibits Tab**: Vertical listing of all 7 `TankTier` stages (`BOWL` $\rightarrow$ `MEGA_TANK`), displaying preview badges, water capacity, max fish count, unlock cost, and "Switch / Unlock" buttons.
   - **Fish & Creatures Tab**: Compatible species store for the active tank tier plus locked preview badges for higher-tier species (e.g. Scalloped Hammerhead and Giant Manta Ray). Buying fish checks tank capacity and deducts Care Points.
