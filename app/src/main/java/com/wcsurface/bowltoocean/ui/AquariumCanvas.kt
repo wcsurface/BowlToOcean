@@ -188,8 +188,26 @@ fun AquariumCanvas(
             )
             drawImage(image = bgBitmap, dstSize = androidx.compose.ui.unit.IntSize(width.toInt(), height.toInt()))
 
-            // 2. Ambient Tank Tint
+            // 2. Ambient Tank Tint & Bio-Load Water Clarity Overlays
             drawRect(color = currentTier.ambientTint.copy(alpha = 0.12f))
+
+            if (engine.bioLoadBalance < 30f) {
+                // Low bio-load balance (<30%): Greenish-murky tint overlay
+                drawRect(color = Color(0x382E5A1E))
+            } else if (engine.bioLoadBalance > 80f) {
+                // High bio-load balance (>80%): Sparkling water clarity particles
+                val sparklePhase = engine.causticsPhase
+                for (s in 0..7) {
+                    val sx = width * (0.1f + s * 0.12f + sin(sparklePhase + s) * 0.05f)
+                    val sy = height * (0.2f + sin(sparklePhase * 1.5f + s) * 0.15f)
+                    val sparkleAlpha = (sin(sparklePhase * 3f + s) * 0.4f + 0.5f).coerceIn(0f, 1f)
+                    drawCircle(
+                        color = Color.White.copy(alpha = sparkleAlpha),
+                        radius = 4f + sin(sparklePhase + s) * 2f,
+                        center = Offset(sx, sy)
+                    )
+                }
+            }
 
             // 3. Atmospheric Water Layer - Caustic Light Shafts
             val phase = engine.causticsPhase

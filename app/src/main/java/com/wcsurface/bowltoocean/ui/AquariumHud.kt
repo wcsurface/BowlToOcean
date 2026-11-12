@@ -22,8 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -430,181 +428,6 @@ fun RightDock(
 }
 
 /**
- * Catalog Modal Bottom Sheet for Tank Progression & Fish Shop.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CatalogModalBottomSheet(
-    engine: AquariumEngine,
-    onDismiss: () -> Unit
-) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        containerColor = Color(0xF20A1428)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "Aquarium Catalog & Progression",
-                color = Color(0xFF00D2FF),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = Color(0x66122240),
-                contentColor = Color(0xFF00D2FF)
-            ) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = { Text("Tank Tiers (${engine.unlockedTanks.size}/7)") }
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = { Text("Fish Species (${engine.fishList.size}/${engine.currentTankTier.maxFish})") }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            when (selectedTab) {
-                0 -> {
-                    // Tank Tiers Tab
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.height(350.dp)
-                    ) {
-                        items(TankTier.entries) { tier ->
-                            val isUnlocked = engine.unlockedTanks.contains(tier)
-                            val isActive = engine.currentTankTier == tier
-
-                            Card(
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (isActive) Color(0xAA004080) else Color(0x66122240)
-                                ),
-                                border = BorderStroke(1.dp, if (isActive) Color(0xFF00D2FF) else Color(0x22FFFFFF)),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = tier.tierName,
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 15.sp
-                                        )
-                                        Text(
-                                            text = "Capacity: ${tier.capacity} Gal | Max Fish: ${tier.maxFish}",
-                                            color = Color(0xFF8B949E),
-                                            fontSize = 12.sp
-                                        )
-                                    }
-
-                                    Button(
-                                        onClick = { engine.unlockAndSwitchTank(tier) },
-                                        enabled = isActive || isUnlocked || engine.carePoints >= tier.cost,
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = if (isActive) Color(0xFF4CAF50) else Color(0xFF00D2FF),
-                                            contentColor = Color.Black
-                                        )
-                                    ) {
-                                        Text(
-                                            text = when {
-                                                isActive -> "Active"
-                                                isUnlocked -> "Switch"
-                                                else -> "Unlock (${tier.cost} pts)"
-                                            },
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                1 -> {
-                    // Fish Species Shop Tab
-                    val currentTierAvailableSpecies = FishSpecies.ALL_SPECIES.filter { it.tierRequired <= engine.currentTankTier }
-
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.height(350.dp)
-                    ) {
-                        items(currentTierAvailableSpecies) { species ->
-                            val canAfford = engine.carePoints >= species.cost
-                            val hasCapacity = engine.fishList.size < engine.currentTankTier.maxFish
-
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0x66122240)),
-                                border = BorderStroke(1.dp, Color(0x22FFFFFF)),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = species.name,
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp
-                                        )
-                                        Text(
-                                            text = "Rate: +${species.basePointsPerMin} pts/min | Bio-Load: ${species.bioLoadWeight}",
-                                            color = Color(0xFF38B0A0),
-                                            fontSize = 12.sp
-                                        )
-                                    }
-
-                                    Button(
-                                        onClick = { engine.addFish(species.id) },
-                                        enabled = canAfford && hasCapacity,
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color(0xFFFFD700),
-                                            contentColor = Color.Black
-                                        )
-                                    ) {
-                                        Text(
-                                            text = if (!hasCapacity) "Tank Full" else "Buy (${species.cost} pts)",
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
  * Full Aquarium HUD Overlay Composable.
  * Entire bottom edge is kept 100% clear of buttons, bars, or labels.
  */
@@ -654,7 +477,7 @@ fun AquariumHud(
 
     // 3. Catalog Modal Bottom Sheet
     if (engine.isShopSheetOpen) {
-        CatalogModalBottomSheet(
+        CatalogSheet(
             engine = engine,
             onDismiss = { engine.isShopSheetOpen = false }
         )

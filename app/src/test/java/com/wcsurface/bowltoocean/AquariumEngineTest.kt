@@ -76,8 +76,9 @@ class AquariumEngineTest {
         // Update simulation frame
         engine.update(0.016f, 1000f, 1000f)
 
-        // Fish moves toward pellet
-        assertTrue(fish.x > 0.5f || fish.y > 0.5f)
+        // Fish targets pellet coordinates
+        assertEquals(0.52f, fish.targetX, 0.001f)
+        assertEquals(0.52f, fish.targetY, 0.01f)
     }
 
     @Test
