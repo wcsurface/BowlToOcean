@@ -12,39 +12,29 @@
 
 ---
 
-## Current Phase: Procedural Audio, Haptics, Settings & Mesh Simulation Complete
+## Current Phase: Widescreen Translucent Aqua-Glass Design & Immersive Fullscreen Complete
 
-### Implemented Components & Features
-- [x] **Zero-Asset Procedural Audio Synthesizer ([`audio/AquariumAudioManager.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/audio/AquariumAudioManager.kt))**:
-  - `playGlassTap()`: 140Hz decaying low-mid underwater glass thud with 420Hz harmonic decay.
-  - `playBubblePop()`: Upward chirping water droplet frequency sweep (450Hz to 900Hz over 60ms).
-  - `playMaintenanceSwoosh()`: Soft filtered white-noise water rush envelope (260ms).
-  - `playRewardChime()`: Warm harmonic triad chime (C5, E5, G5) with smooth decay for tank unlocks and daily bonuses.
-- [x] **Tactile Haptic Feedback**:
-  - `HapticFeedbackType.TextHandleMove` triggered on glass taps.
-  - `HapticFeedbackType.LongPress` triggered on startled fish bursts and new tank unlocks.
-- [x] **Settings & Debug Dialog ([`ui/SettingsDialog.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/SettingsDialog.kt))**:
-  - Frosted glass dialog with switches for Sound Effects, Haptics, and Live FPS / Debug Overlay.
-  - "Reset Save Data (Closed Testing)" button with confirmation dialog.
-- [x] **Catalog Modal Bottom Sheet ([`ui/CatalogSheet.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/CatalogSheet.kt))**:
-  - **Tanks & Exhibits Tab**: Vertical listing of all 7 `TankTier` stages (`BOWL` $\rightarrow$ `MEGA_TANK`), displaying preview badges, water capacity, max fish count, unlock cost, and "Switch / Unlock" buttons.
-  - **Fish & Creatures Tab**: Compatible species store for the active tank tier plus locked preview badges for higher-tier species (e.g. Scalloped Hammerhead and Giant Manta Ray). Buying fish checks tank capacity and deducts Care Points.
-- [x] **Non-Punishing Care & Bio-Load Economy Loop**:
-  - Fish never die from neglect.
-  - High bio-load balance ($>80\%$) grants a $2.0\times$ Care Points multiplier and triggers sparkling water particle effects.
-  - Low bio-load balance ($<30\%$) applies a $0.5\times$ rate and renders a subtle greenish-murky water tint overlay.
-- [x] **Hybrid DataStore + Railway Repository ([`data/AquariumRepository.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/data/AquariumRepository.kt))**:
-  - Jetpack DataStore Preferences for local 0ms offline-first persistence.
-  - `fetchRemoteConfig()`: Pulls live game balance parameters from Railway `/api/config` on startup with fallback defaults.
-  - `syncPlayerStateToRailway()`: Debounced background `POST /api/sync` calls when buying fish, unlocking tanks, or app pause (`ON_STOP`).
-- [x] **ViewModel Architecture ([`viewmodel/AquariumViewModel.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/viewmodel/AquariumViewModel.kt))**:
-  - `StateFlow<AquariumUiState>` exposing unidirectional data flow to Jetpack Compose UI.
-- [x] **60 FPS Jetpack Compose 2D Mesh Simulation Engine ([`engine/AquariumEngine.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/engine/AquariumEngine.kt))**:
-  - `Canvas.drawVertices()` 2D mesh skinning in `VertexMode.TriangleStrip` (20 columns / 42 vertices).
-  - Travelling sine wave spine deformation, vertical steering curve, and 250ms direction flip.
-  - Boids flocking algorithm for schooling fish.
-  - Sinking food pellets, feeding consumption, and floating text popups.
-  - Concentric glass tap ripples, clean-view HUD toggle, and startled/curious fish reaction.
-  - Atmospheric water layer with caustic light shafts, rising bubbles, murky water tint, and sparkling water dots.
+### Implemented Overhaul Highlights
+- [x] **Forced Sensor-Landscape & Fullscreen Immersive Mode**:
+  - `android:screenOrientation="sensorLandscape"` configured in [`AndroidManifest.xml`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/AndroidManifest.xml).
+  - True edge-to-edge immersive mode in [`MainActivity.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/MainActivity.kt) using `WindowInsetsControllerCompat.hide(Type.systemBars())` with `BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE`.
+- [x] **Real Drawables & White-Pixel Background Stripper ([`AssetResolver.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/util/AssetResolver.kt))**:
+  - Removed all debug placeholder text completely.
+  - Automatically converts pure white background pixels ($R > 240 \land G > 240 \land B > 240 \implies \text{alpha} = 0$) to transparent alpha at load time.
+  - Hero Betta spawned visibly at exact center ($0.5f, 0.48f$) at prominent scale ($\sim 220\text{dp}$) with swim bounds clamped strictly inside central bowl glass ($25\%\dots75\%$ X, $25\%\dots72\%$ Y).
+- [x] **Translucent Aqua-Glass HUD Overlay ([`ui/AquariumHud.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/AquariumHud.kt))**:
+  - Custom `AquaGlassPanel` container featuring translucent deep-teal gradient (`Color(0xAA13384C)` to `Color(0x880B2230)`) and $1\text{dp}$ luminous cyan border (`Color(0x667CE8FF)`).
+  - **Top Bar**: Care Points pill (+ button), Diamonds pill (+ button), Gold Star Level badge (2) + glowing cyan XP progress bar, circular water drop gauge + Bio-Load balance bar + Settings gear button.
+  - **Right Dock & Custom Canvas Icons**:
+    - **Feed**: Tilted fish-food shaker sprinkling flakes.
+    - **Maintain**: Bubbly sponge + sparkle star.
+    - **Catalog**: Open field-guide book.
+  - **Slide-Out Maintain Drawer**: Aqua-Glass panel containing *Water Change* (bucket icon), *Clean Glass* (squeegee icon), and *Check Water* (test-tube icon).
+- [x] **Zero-Asset Procedural Audio & Haptics**:
+  - Memory-synthesized PCM `AudioTrack` sounds (`playGlassTap`, `playBubblePop`, `playMaintenanceSwoosh`, `playRewardChime`).
+  - Haptic feedback on glass taps, startled fish, and tank unlocks.
+- [x] **Catalog & Settings Modals**:
+  - `CatalogSheet.kt` tabbed bottom sheet for Tank Progression and Fish Store.
+  - `SettingsDialog.kt` with Sound, Haptic, Debug FPS toggles, and Save Reset confirmation.
 - [x] **Unit Testing Suite**:
-  - 12 unit tests passing across [`AquariumModelsTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumModelsTest.kt), [`AquariumEngineTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumEngineTest.kt), [`AquariumRepositoryTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumRepositoryTest.kt), and [`AquariumAudioTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumAudioTest.kt).
+  - All 12 unit tests passing across test suite.
