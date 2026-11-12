@@ -1,6 +1,8 @@
 package com.wcsurface.bowltoocean.model
 
+import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
+import com.wcsurface.bowltoocean.R
 
 /**
  * Maintenance actions specific to each tank tier.
@@ -23,6 +25,7 @@ enum class TankTier(
     val maxFish: Int,
     val capacity: Int,
     val bgDrawableResName: String,
+    @DrawableRes val backgroundResId: Int,
     val ambientTint: Color,
     val maintenanceActions: List<MaintenanceAction>
 ) {
@@ -32,6 +35,7 @@ enum class TankTier(
         maxFish = 1,
         capacity = 10,
         bgDrawableResName = "bg_tank_1_bowl",
+        backgroundResId = R.drawable.bg_tank_1_bowl,
         ambientTint = Color(0xFF40A0E0),
         maintenanceActions = listOf(
             MaintenanceAction("bowl_wc", "Water Change", cost = 0L, cleanBonus = 35f, rewardPoints = 15L, cooldownSeconds = 15),
@@ -45,6 +49,7 @@ enum class TankTier(
         maxFish = 4,
         capacity = 30,
         bgDrawableResName = "bg_tank_2_5g",
+        backgroundResId = R.drawable.bg_tank_1_bowl,
         ambientTint = Color(0xFF38B0A0),
         maintenanceActions = listOf(
             MaintenanceAction("5g_tp", "Trim Plants", cost = 25L, cleanBonus = 30f, rewardPoints = 50L, cooldownSeconds = 25),
@@ -58,6 +63,7 @@ enum class TankTier(
         maxFish = 8,
         capacity = 60,
         bgDrawableResName = "bg_tank_3_10g",
+        backgroundResId = R.drawable.bg_tank_1_bowl,
         ambientTint = Color(0xFF30B0C0),
         maintenanceActions = listOf(
             MaintenanceAction("10g_fs", "Filter Sponge Rinse", cost = 100L, cleanBonus = 45f, rewardPoints = 200L, cooldownSeconds = 40),
@@ -71,6 +77,7 @@ enum class TankTier(
         maxFish = 15,
         capacity = 120,
         bgDrawableResName = "bg_tank_4_40g",
+        backgroundResId = R.drawable.bg_tank_1_bowl,
         ambientTint = Color(0xFF2888B0),
         maintenanceActions = listOf(
             MaintenanceAction("40g_ws", "Water Scrub", cost = 300L, cleanBonus = 50f, rewardPoints = 600L, cooldownSeconds = 60),
@@ -84,6 +91,7 @@ enum class TankTier(
         maxFish = 25,
         capacity = 250,
         bgDrawableResName = "bg_tank_5_100g",
+        backgroundResId = R.drawable.bg_tank_1_bowl,
         ambientTint = Color(0xFF2060A0),
         maintenanceActions = listOf(
             MaintenanceAction("100g_ps", "Protein Skimmer Clean", cost = 1200L, cleanBonus = 55f, rewardPoints = 2500L, cooldownSeconds = 90),
@@ -97,6 +105,7 @@ enum class TankTier(
         maxFish = 45,
         capacity = 500,
         bgDrawableResName = "bg_tank_6_large",
+        backgroundResId = R.drawable.bg_tank_1_bowl,
         ambientTint = Color(0xFF184888),
         maintenanceActions = listOf(
             MaintenanceAction("large_ab", "Automated Backwash", cost = 5000L, cleanBonus = 65f, rewardPoints = 12000L, cooldownSeconds = 150),
@@ -110,6 +119,7 @@ enum class TankTier(
         maxFish = 80,
         capacity = 1000,
         bgDrawableResName = "bg_tank_7_mega",
+        backgroundResId = R.drawable.bg_tank_1_bowl,
         ambientTint = Color(0xFF102868),
         maintenanceActions = listOf(
             MaintenanceAction("mega_dc", "Dive Crew Scrub", cost = 15000L, cleanBonus = 75f, rewardPoints = 40000L, cooldownSeconds = 200),
@@ -134,7 +144,8 @@ data class FishSpecies(
     val waveFrequency: Float,
     val waveAmplitude: Float,
     val isSchooling: Boolean,
-    val drawableResName: String
+    val drawableResName: String,
+    @DrawableRes val drawableResId: Int = R.drawable.fish_betta_blue
 ) {
     companion object {
         val ALL_SPECIES: List<FishSpecies> = listOf(
@@ -151,7 +162,8 @@ data class FishSpecies(
                 waveFrequency = 2.5f,
                 waveAmplitude = 12.0f,
                 isSchooling = false,
-                drawableResName = "fish_betta_blue"
+                drawableResName = "fish_betta_blue",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             FishSpecies(
                 id = "guppy_fancy",
@@ -165,7 +177,8 @@ data class FishSpecies(
                 waveFrequency = 4.0f,
                 waveAmplitude = 8.0f,
                 isSchooling = true,
-                drawableResName = "fish_guppy_fancy"
+                drawableResName = "fish_guppy_fancy",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             // 5G Planted Tier
             FishSpecies(
@@ -180,7 +193,8 @@ data class FishSpecies(
                 waveFrequency = 4.5f,
                 waveAmplitude = 7.0f,
                 isSchooling = true,
-                drawableResName = "fish_tetra_neon"
+                drawableResName = "fish_tetra_neon",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             FishSpecies(
                 id = "cory_panda",
@@ -194,7 +208,8 @@ data class FishSpecies(
                 waveFrequency = 3.0f,
                 waveAmplitude = 9.0f,
                 isSchooling = false,
-                drawableResName = "fish_cory_panda"
+                drawableResName = "fish_cory_panda",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             // 10G Community Tier
             FishSpecies(
@@ -209,7 +224,8 @@ data class FishSpecies(
                 waveFrequency = 2.0f,
                 waveAmplitude = 10.0f,
                 isSchooling = false,
-                drawableResName = "fish_angelfish_marble"
+                drawableResName = "fish_angelfish_marble",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             FishSpecies(
                 id = "ram_german_blue",
@@ -223,7 +239,8 @@ data class FishSpecies(
                 waveFrequency = 3.2f,
                 waveAmplitude = 8.5f,
                 isSchooling = false,
-                drawableResName = "fish_ram_german_blue"
+                drawableResName = "fish_ram_german_blue",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             // 40G Breeder Tier
             FishSpecies(
@@ -238,7 +255,8 @@ data class FishSpecies(
                 waveFrequency = 1.8f,
                 waveAmplitude = 11.0f,
                 isSchooling = true,
-                drawableResName = "fish_discus_red"
+                drawableResName = "fish_discus_red",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             FishSpecies(
                 id = "pleco_bristlenose",
@@ -252,7 +270,8 @@ data class FishSpecies(
                 waveFrequency = 2.2f,
                 waveAmplitude = 6.0f,
                 isSchooling = false,
-                drawableResName = "fish_pleco_bristlenose"
+                drawableResName = "fish_pleco_bristlenose",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             // 100G Reef Tier
             FishSpecies(
@@ -267,7 +286,8 @@ data class FishSpecies(
                 waveFrequency = 3.8f,
                 waveAmplitude = 10.0f,
                 isSchooling = true,
-                drawableResName = "fish_tang_blue"
+                drawableResName = "fish_tang_blue",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             FishSpecies(
                 id = "clownfish_percula",
@@ -281,7 +301,8 @@ data class FishSpecies(
                 waveFrequency = 3.5f,
                 waveAmplitude = 9.0f,
                 isSchooling = true,
-                drawableResName = "fish_clownfish_percula"
+                drawableResName = "fish_clownfish_percula",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             // Gallery Exhibit Tier
             FishSpecies(
@@ -296,7 +317,8 @@ data class FishSpecies(
                 waveFrequency = 1.5f,
                 waveAmplitude = 14.0f,
                 isSchooling = false,
-                drawableResName = "fish_catfish_redtail"
+                drawableResName = "fish_catfish_redtail",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             FishSpecies(
                 id = "arowana_silver",
@@ -310,7 +332,8 @@ data class FishSpecies(
                 waveFrequency = 1.8f,
                 waveAmplitude = 16.0f,
                 isSchooling = false,
-                drawableResName = "fish_arowana_silver"
+                drawableResName = "fish_arowana_silver",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             // Oceanic Mega-Tank Tier
             FishSpecies(
@@ -325,7 +348,8 @@ data class FishSpecies(
                 waveFrequency = 1.6f,
                 waveAmplitude = 20.0f,
                 isSchooling = true,
-                drawableResName = "fish_shark_hammerhead"
+                drawableResName = "fish_shark_hammerhead",
+                drawableResId = R.drawable.fish_betta_blue
             ),
             FishSpecies(
                 id = "manta_ray",
@@ -339,7 +363,8 @@ data class FishSpecies(
                 waveFrequency = 1.0f,
                 waveAmplitude = 25.0f,
                 isSchooling = false,
-                drawableResName = "fish_manta_ray"
+                drawableResName = "fish_manta_ray",
+                drawableResId = R.drawable.fish_betta_blue
             )
         )
 
