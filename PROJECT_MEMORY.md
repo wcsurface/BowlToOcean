@@ -3,6 +3,7 @@
 ## Project Core Identity
 - **App Name**: Bowl to Ocean Aquarium Sim
 - **Package Name**: `com.wcsurface.bowltoocean`
+- **GitHub Repository**: https://github.com/wcsurface/BowlToOcean
 - **Target Platform**: Android (Min SDK 26, Target/Compile SDK 37)
 - **Deployment Target**: Google Play Closed Testing
 

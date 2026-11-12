@@ -1,6 +1,11 @@
 # CURRENT_STATUS.md - Project Implementation Status
 
-## Current Phase: Core Simulation Engine & Vertex Deformation Renderer Complete
+## Repository & Infrastructure
+- **GitHub Repository**: [wcsurface/BowlToOcean](https://github.com/wcsurface/BowlToOcean)
+- **Railway Backend**: `/backend` Node.js REST API
+- **Vercel Web App**: `/web` Landing & Legal Pages (/privacy, /terms)
+
+## Current Phase: Core Engine, Cloud Pipeline & Backend Active
 
 ### Implemented Components
 - [x] **Gradle Build Setup & Dependencies**:
