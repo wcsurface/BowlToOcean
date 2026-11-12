@@ -482,4 +482,15 @@ fun AquariumHud(
             onDismiss = { engine.isShopSheetOpen = false }
         )
     }
+
+    // 4. Settings Dialog
+    if (engine.isSettingsOpen) {
+        SettingsDialog(
+            engine = engine,
+            onResetData = {
+                engine.resetDataToDefaults()
+            },
+            onDismiss = { engine.isSettingsOpen = false }
+        )
+    }
 }

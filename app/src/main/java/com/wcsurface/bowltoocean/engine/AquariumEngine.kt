@@ -1,5 +1,6 @@
 package com.wcsurface.bowltoocean.engine
 
+import com.wcsurface.bowltoocean.audio.AquariumAudioManager
 import com.wcsurface.bowltoocean.model.AiState
 import com.wcsurface.bowltoocean.model.FishInstance
 import com.wcsurface.bowltoocean.model.FishSpecies
@@ -49,6 +50,18 @@ data class FloatingText(
 class AquariumEngine(
     initialTankTier: TankTier = TankTier.BOWL
 ) {
+    val audioManager = AquariumAudioManager()
+
+    var soundEnabled: Boolean
+        get() = audioManager.soundEnabled
+        set(value) { audioManager.soundEnabled = value }
+
+    var hapticsEnabled: Boolean
+        get() = audioManager.hapticsEnabled
+        set(value) { audioManager.hapticsEnabled = value }
+
+    var showDebugFps: Boolean = false
+
     var currentTankTier: TankTier = initialTankTier
     val fishList: MutableList<FishInstance> = mutableListOf()
     val foodPellets: MutableList<FoodPellet> = mutableListOf()
@@ -87,6 +100,18 @@ class AquariumEngine(
         spawnDefaultFishForTier(initialTankTier)
     }
 
+    fun resetDataToDefaults() {
+        carePoints = 1250L
+        diamonds = 25L
+        playerLevel = 1
+        playerXp = 0
+        xpToNextLevel = 300
+        bioLoadBalance = 85f
+        unlockedTanks.clear()
+        unlockedTanks.add(TankTier.BOWL)
+        setTankTier(TankTier.BOWL)
+    }
+
     fun spawnDefaultFishForTier(tier: TankTier) {
         fishList.clear()
         val availableSpecies = FishSpecies.ALL_SPECIES.filter { it.tierRequired <= tier }
@@ -117,6 +142,7 @@ class AquariumEngine(
                 unlockedTanks.add(tier)
             }
             spawnDefaultFishForTier(tier)
+            audioManager.playRewardChime()
         }
     }
 
@@ -129,6 +155,7 @@ class AquariumEngine(
             carePoints -= tier.cost
             unlockedTanks.add(tier)
             setTankTier(tier)
+            audioManager.playRewardChime()
             return true
         }
         return false
@@ -150,6 +177,7 @@ class AquariumEngine(
                 aiState = AiState.CRUISING
             )
         )
+        audioManager.playBubblePop()
         return true
     }
 
@@ -158,6 +186,8 @@ class AquariumEngine(
         dailyBonusClaimable = false
         carePoints += 250L
         diamonds += 5L
+
+        audioManager.playRewardChime()
 
         floatingTexts.add(
             FloatingText(
@@ -172,6 +202,8 @@ class AquariumEngine(
     fun triggerFeedAction(viewportWidth: Float = 1080f, viewportHeight: Float = 1920f) {
         if (feedCooldownTimer > 0f) return
         feedCooldownTimer = 2.0f // 2 second cooldown
+
+        audioManager.playBubblePop()
 
         // Drop 3 food pellets along top water surface
         dropFoodPellet(0.35f, 0.12f)
@@ -201,10 +233,13 @@ class AquariumEngine(
         carePoints += action.rewardPoints
         playerXp += 35
 
+        audioManager.playMaintenanceSwoosh()
+
         if (playerXp >= xpToNextLevel) {
             playerLevel += 1
             playerXp -= xpToNextLevel
             xpToNextLevel += 150
+            audioManager.playRewardChime()
         }
 
         bioLoadBalance = (bioLoadBalance + action.cleanBonus).coerceAtMost(100f)
@@ -253,6 +288,9 @@ class AquariumEngine(
         viewportHeight: Float,
         tapRadiusPx: Float = 250f
     ) {
+        // Play low-mid underwater glass tap thud
+        audioManager.playGlassTap()
+
         // 1. Spawn concentric glass ripple
         glassRipples.add(GlassRipple(x = tapXPx, y = tapYPx))
 
@@ -412,6 +450,7 @@ class AquariumEngine(
                             // Consume food pellet on contact
                             if (minDist < 0.04f) {
                                 foodPellets.remove(nearestPellet)
+                                audioManager.playBubblePop()
                                 val pointsEarned = (species.basePointsPerMin * 2L).coerceAtLeast(10L)
                                 carePoints += pointsEarned
 

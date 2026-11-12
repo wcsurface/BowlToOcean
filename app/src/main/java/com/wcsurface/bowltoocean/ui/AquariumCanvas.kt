@@ -3,14 +3,23 @@ package com.wcsurface.bowltoocean.ui
 import android.graphics.Paint as NativePaint
 import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -24,8 +33,13 @@ import androidx.compose.ui.graphics.Vertices
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.wcsurface.bowltoocean.engine.AquariumEngine
 import com.wcsurface.bowltoocean.model.FishInstance
 import com.wcsurface.bowltoocean.model.FishSpecies
@@ -135,14 +149,26 @@ fun AquariumCanvas(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    var liveFps by remember { mutableIntStateOf(60) }
 
     // Frame loop driver updating simulation at 60 FPS
     LaunchedEffect(engine) {
         var lastTimeNanos = System.nanoTime()
+        var frameCounter = 0
+        var fpsTimerNanos = System.nanoTime()
+
         while (true) {
             withFrameNanos { currentTimeNanos ->
                 val dt = (currentTimeNanos - lastTimeNanos) / 1_000_000_000f
                 lastTimeNanos = currentTimeNanos
+
+                frameCounter++
+                if (currentTimeNanos - fpsTimerNanos >= 1_000_000_000L) {
+                    liveFps = frameCounter
+                    frameCounter = 0
+                    fpsTimerNanos = currentTimeNanos
+                }
 
                 // Engine update with dt clamped to 0.05f
                 engine.update(dt, 1080f, 1920f)
@@ -166,6 +192,9 @@ fun AquariumCanvas(
                 .pointerInput(engine) {
                     detectTapGestures(
                         onTap = { offset ->
+                            if (engine.hapticsEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            }
                             engine.onGlassTap(
                                 tapXPx = offset.x,
                                 tapYPx = offset.y,
@@ -303,6 +332,25 @@ fun AquariumCanvas(
                     textNativePaint.alpha = (ft.alpha.coerceIn(0f, 1f) * 255).toInt()
                     canvas.nativeCanvas.drawText(ft.text, ft.x, ft.y, textNativePaint)
                 }
+            }
+        }
+
+        // Live FPS & Bio-Load Debug Overlay
+        if (engine.showDebugFps) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(16.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xCC0A1428))
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = "$liveFps FPS | Bio-Load: ${engine.bioLoadBalance.toInt()}% | Fish: ${engine.fishList.size}/${engine.currentTankTier.maxFish}",
+                    color = Color(0xFF00D2FF),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
