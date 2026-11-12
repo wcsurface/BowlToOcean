@@ -14,8 +14,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * AssetResolver loads game drawables and strips white background pixels from fish textures.
- * If a PNG is missing, it dynamically generates high-quality artwork fallbacks without debug text.
+ * AssetResolver handles direct loading of game drawables and strips white background pixels from fish textures.
+ * Uses zero placeholder debug text overlays.
  */
 object AssetResolver {
 
@@ -25,7 +25,7 @@ object AssetResolver {
         val cacheKey = "${resName}_${width}x${height}"
         bitmapCache[cacheKey]?.let { return it }
 
-        // Attempt loading real resource
+        // 1. Direct Resource Identifier Resolution
         val resId = context.resources.getIdentifier(resName, "drawable", context.packageName)
         if (resId != 0) {
             try {
@@ -47,7 +47,7 @@ object AssetResolver {
             }
         }
 
-        // Generate dynamic high-definition procedural fallback without debug text
+        // 2. High-Quality Procedural Artwork Fallback (without debug text)
         val fallbackBitmap = if (resName.startsWith("bg_tank_")) {
             generateProceduralTankBg(resName, width, height)
         } else {
@@ -177,87 +177,8 @@ object AssetResolver {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
-        val bodyColor: Int
-        val finColor: Int
-        val stripeColor: Int
-
-        when {
-            resName.contains("betta") -> {
-                bodyColor = AndroidColor.rgb(25, 100, 240)
-                finColor = AndroidColor.rgb(230, 240, 255)
-                stripeColor = AndroidColor.rgb(120, 210, 255)
-            }
-            resName.contains("guppy") -> {
-                bodyColor = AndroidColor.rgb(255, 140, 0)
-                finColor = AndroidColor.rgb(0, 230, 180)
-                stripeColor = AndroidColor.rgb(255, 230, 0)
-            }
-            resName.contains("tetra") -> {
-                bodyColor = AndroidColor.rgb(0, 210, 255)
-                finColor = AndroidColor.rgb(240, 30, 30)
-                stripeColor = AndroidColor.rgb(255, 255, 255)
-            }
-            resName.contains("cory") -> {
-                bodyColor = AndroidColor.rgb(230, 220, 190)
-                finColor = AndroidColor.rgb(30, 30, 30)
-                stripeColor = AndroidColor.rgb(60, 60, 60)
-            }
-            resName.contains("angelfish") -> {
-                bodyColor = AndroidColor.rgb(240, 240, 245)
-                finColor = AndroidColor.rgb(200, 160, 20)
-                stripeColor = AndroidColor.rgb(40, 40, 40)
-            }
-            resName.contains("ram") -> {
-                bodyColor = AndroidColor.rgb(230, 190, 40)
-                finColor = AndroidColor.rgb(30, 180, 220)
-                stripeColor = AndroidColor.rgb(220, 50, 120)
-            }
-            resName.contains("discus") -> {
-                bodyColor = AndroidColor.rgb(220, 50, 40)
-                finColor = AndroidColor.rgb(40, 180, 200)
-                stripeColor = AndroidColor.rgb(255, 220, 80)
-            }
-            resName.contains("pleco") -> {
-                bodyColor = AndroidColor.rgb(80, 60, 45)
-                finColor = AndroidColor.rgb(140, 110, 70)
-                stripeColor = AndroidColor.rgb(200, 170, 110)
-            }
-            resName.contains("tang") -> {
-                bodyColor = AndroidColor.rgb(30, 100, 240)
-                finColor = AndroidColor.rgb(255, 210, 0)
-                stripeColor = AndroidColor.rgb(20, 20, 30)
-            }
-            resName.contains("clownfish") -> {
-                bodyColor = AndroidColor.rgb(255, 110, 20)
-                finColor = AndroidColor.rgb(20, 20, 20)
-                stripeColor = AndroidColor.rgb(255, 255, 255)
-            }
-            resName.contains("catfish") -> {
-                bodyColor = AndroidColor.rgb(50, 50, 60)
-                finColor = AndroidColor.rgb(220, 40, 30)
-                stripeColor = AndroidColor.rgb(240, 230, 210)
-            }
-            resName.contains("arowana") -> {
-                bodyColor = AndroidColor.rgb(210, 220, 230)
-                finColor = AndroidColor.rgb(180, 200, 220)
-                stripeColor = AndroidColor.rgb(255, 180, 100)
-            }
-            resName.contains("hammerhead") -> {
-                bodyColor = AndroidColor.rgb(120, 135, 150)
-                finColor = AndroidColor.rgb(80, 95, 110)
-                stripeColor = AndroidColor.rgb(200, 210, 220)
-            }
-            resName.contains("manta") -> {
-                bodyColor = AndroidColor.rgb(35, 45, 60)
-                finColor = AndroidColor.rgb(230, 235, 245)
-                stripeColor = AndroidColor.rgb(100, 120, 140)
-            }
-            else -> {
-                bodyColor = AndroidColor.rgb(40, 160, 220)
-                finColor = AndroidColor.rgb(255, 120, 40)
-                stripeColor = AndroidColor.rgb(255, 255, 255)
-            }
-        }
+        val bodyColor = AndroidColor.rgb(25, 100, 240)
+        val finColor = AndroidColor.rgb(230, 240, 255)
 
         val w = width.toFloat()
         val h = height.toFloat()
@@ -285,21 +206,11 @@ object AssetResolver {
         }
         val bodyPath = Path().apply {
             moveTo(w * 0.18f, centerY)
-            quadTo(w * 0.50f, centerY - h * 0.30f, w * 0.88f, centerY)
+            quadTo(w * 0.50f, centerY - h * 0.30f, w * 0.92f, centerY)
             quadTo(w * 0.50f, centerY + h * 0.30f, w * 0.18f, centerY)
             close()
         }
         canvas.drawPath(bodyPath, bodyPaint)
-
-        // Accent stripes
-        val stripePaint = Paint().apply {
-            color = stripeColor
-            style = Paint.Style.STROKE
-            strokeWidth = (h * 0.04f).coerceAtLeast(3f)
-            isAntiAlias = true
-        }
-        canvas.drawLine(w * 0.42f, centerY - h * 0.20f, w * 0.42f, centerY + h * 0.20f, stripePaint)
-        canvas.drawLine(w * 0.58f, centerY - h * 0.16f, w * 0.58f, centerY + h * 0.16f, stripePaint)
 
         // Eye
         val eyeBgPaint = Paint().apply {

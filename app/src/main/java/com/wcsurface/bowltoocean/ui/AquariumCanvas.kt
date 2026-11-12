@@ -62,8 +62,15 @@ fun drawFishMesh(
     val columns = 20
     val numVertices = (columns + 1) * 2 // 42 vertices
 
-    val baseWidth = 140f * species.scale
-    val baseHeight = 90f * species.scale
+    val bmpWidth = imageBitmap.width.toFloat()
+    val bmpHeight = imageBitmap.height.toFloat()
+    val aspectRatio = if (bmpWidth > 0f) bmpHeight / bmpWidth else 0.6f
+
+    // Hero scale 240dp base width preserving image aspect ratio
+    val density = drawScope.density
+    val heroWidth = 240f * density * (species.scale / 1.8f)
+    val baseWidth = heroWidth
+    val baseHeight = heroWidth * aspectRatio
 
     val positions = ArrayList<Offset>(numVertices)
     val uvs = ArrayList<Offset>(numVertices)
@@ -101,10 +108,10 @@ fun drawFishMesh(
         val topPosY = fishCenterY + topRelY
         val botPosY = fishCenterY + botRelY
 
-        // Texture coordinates UV (Nose at u_tex = 1.0, Tail at u_tex = 0.0)
-        val uTex = 1.0f - u
-        val topUV = Offset(uTex, 0.0f)
-        val botUV = Offset(uTex, 1.0f)
+        // Texture coordinates UV in PIXEL SPACE (Nose at uTex = bmpWidth, Tail at uTex = 0f)
+        val uTexPixel = (1.0f - u) * bmpWidth
+        val topUV = Offset(uTexPixel, 0.0f)
+        val botUV = Offset(uTexPixel, bmpHeight)
 
         positions.add(Offset(posX, topPosY))
         uvs.add(topUV)

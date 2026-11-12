@@ -112,6 +112,30 @@ class AquariumEngine(
         setTankTier(TankTier.BOWL)
     }
 
+    fun ensureStarterFishActive() {
+        if (fishList.isEmpty()) {
+            val minX = if (currentTankTier == TankTier.BOWL) 0.25f else 0.08f
+            val maxX = if (currentTankTier == TankTier.BOWL) 0.75f else 0.92f
+            val minY = if (currentTankTier == TankTier.BOWL) 0.25f else 0.12f
+            val maxY = if (currentTankTier == TankTier.BOWL) 0.72f else 0.82f
+
+            fishList.add(
+                FishInstance(
+                    instanceId = "fish_betta_blue_starter",
+                    speciesId = "betta_blue",
+                    x = 0.50f,
+                    y = 0.48f,
+                    vx = 0.02f,
+                    vy = 0.01f,
+                    facingRight = true,
+                    aiState = AiState.CRUISING,
+                    targetX = 0.52f,
+                    targetY = 0.48f
+                )
+            )
+        }
+    }
+
     fun spawnDefaultFishForTier(tier: TankTier) {
         fishList.clear()
         val availableSpecies = FishSpecies.ALL_SPECIES.filter { it.tierRequired <= tier }
@@ -338,6 +362,8 @@ class AquariumEngine(
     }
 
     fun update(rawDeltaTime: Float, viewportWidth: Float, viewportHeight: Float) {
+        ensureStarterFishActive()
+
         // Clamp deltaTime to 0.05f max to prevent physics explosions
         val dt = rawDeltaTime.coerceAtMost(0.05f)
         causticsPhase += dt * 1.2f

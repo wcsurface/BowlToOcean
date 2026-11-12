@@ -260,7 +260,7 @@ fun TopStatusBar(
     AquaGlassPanel(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(start = 4.dp, end = 56.dp, top = 4.dp, bottom = 4.dp),
         shape = RoundedCornerShape(20.dp)
     ) {
         Row(
@@ -359,41 +359,44 @@ fun TopStatusBar(
                 modifier = Modifier
                     .clip(RoundedCornerShape(14.dp))
                     .background(Color(0x66000000))
-                    .padding(horizontal = 12.dp, vertical = 5.dp)
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Star,
                     contentDescription = "Level",
                     tint = Color(0xFFFFC107),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(5.dp))
                 Text(
                     text = "Lv. ${engine.playerLevel}",
                     color = Color.White,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp))
 
                 val xpProgress = (engine.playerXp.toFloat() / engine.xpToNextLevel.toFloat()).coerceIn(0f, 1f)
-                Column {
+                Column(
+                    modifier = Modifier.width(70.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     LinearProgressIndicator(
                         progress = { xpProgress },
                         modifier = Modifier
-                            .width(75.dp)
+                            .fillMaxWidth()
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
                         color = Color(0xFF7CE8FF),
                         trackColor = Color(0x33FFFFFF)
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "${engine.playerXp}/${engine.xpToNextLevel}",
                         color = Color(0xFF8B949E),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        textAlign = TextAlign.Center
                     )
                 }
             }
