@@ -1,5 +1,6 @@
 package com.wcsurface.bowltoocean.ui
 
+import android.graphics.Bitmap
 import android.graphics.Paint as NativePaint
 import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
@@ -31,21 +32,24 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.VertexMode
 import androidx.compose.ui.graphics.Vertices
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wcsurface.bowltoocean.R
 import com.wcsurface.bowltoocean.engine.AquariumEngine
 import com.wcsurface.bowltoocean.model.FishInstance
 import com.wcsurface.bowltoocean.model.FishSpecies
-import com.wcsurface.bowltoocean.util.AssetResolver
 import kotlin.math.pow
 import kotlin.math.sin
 
@@ -156,9 +160,37 @@ fun AquariumCanvas(
     engine: AquariumEngine,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     var liveFps by remember { mutableIntStateOf(60) }
+
+    // Direct resource loading via Jetpack Compose ImageBitmap.imageResource
+    val bowlBitmap = ImageBitmap.imageResource(id = R.drawable.bg_tank_1_bowl)
+    val rawBettaBitmap = ImageBitmap.imageResource(id = R.drawable.fish_betta_blue)
+
+    // Process rawBettaBitmap once in remember to remove white background pixels
+    val bettaBitmap = remember(rawBettaBitmap) {
+        val src = rawBettaBitmap.asAndroidBitmap().copy(Bitmap.Config.ARGB_8888, true)
+        val w = src.width
+        val h = src.height
+        val pixels = IntArray(w * h)
+        src.getPixels(pixels, 0, w, 0, 0, w, h)
+        var modified = false
+        for (i in pixels.indices) {
+            val px = pixels[i]
+            val r = (px shr 16) and 0xFF
+            val g = (px shr 8) and 0xFF
+            val b = px and 0xFF
+            val a = (px shr 24) and 0xFF
+            if (a > 0 && r > 235 && g > 235 && b > 235) {
+                pixels[i] = 0 // Set transparent
+                modified = true
+            }
+        }
+        if (modified) {
+            src.setPixels(pixels, 0, w, 0, 0, w, h)
+        }
+        src.asImageBitmap()
+    }
 
     // Frame loop driver updating simulation at 60 FPS
     LaunchedEffect(engine) {
@@ -217,14 +249,12 @@ fun AquariumCanvas(
             val width = size.width
             val height = size.height
 
-            // 1. Tank Background (Direct Resource Loading)
+            // 1. Tank Background (Draw real bowlBitmap filling 100% of canvas)
             val currentTier = engine.currentTankTier
-            val bgBitmap = AssetResolver.getBitmapByResId(
-                context = context,
-                resId = currentTier.backgroundResId,
-                isFish = false
+            drawImage(
+                image = bowlBitmap,
+                dstSize = IntSize(width.toInt(), height.toInt())
             )
-            drawImage(image = bgBitmap, dstSize = androidx.compose.ui.unit.IntSize(width.toInt(), height.toInt()))
 
             // 2. Ambient Tank Tint & Bio-Load Water Clarity Overlays
             drawRect(color = currentTier.ambientTint.copy(alpha = 0.12f))
@@ -316,16 +346,11 @@ fun AquariumCanvas(
             // 6. Fish Layer (using Canvas.drawVertices mesh skinning)
             for (fish in engine.fishList) {
                 val species = FishSpecies.getSpeciesById(fish.speciesId) ?: continue
-                val fishBitmap = AssetResolver.getBitmapByResId(
-                    context = context,
-                    resId = species.drawableResId,
-                    isFish = true
-                )
                 drawFishMesh(
                     drawScope = this,
                     fish = fish,
                     species = species,
-                    imageBitmap = fishBitmap,
+                    imageBitmap = bettaBitmap,
                     viewportWidth = width,
                     viewportHeight = height
                 )
