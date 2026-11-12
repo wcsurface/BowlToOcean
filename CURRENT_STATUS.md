@@ -12,32 +12,28 @@
 
 ---
 
-## Current Phase: 60 FPS Engine & Dark-Ocean Frosted-Glass HUD Complete
+## Current Phase: Hybrid DataStore + Railway Economy, ViewModel, and CatalogSheet Complete
 
 ### Implemented Components
-- [x] **Dark-Ocean Frosted-Glass UI Overlay ([`ui/AquariumHud.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/AquariumHud.kt))**:
-  - `AnimatedVisibility` wrapper (`fadeIn`/`fadeOut` in 220ms) tied to `isHudVisible`.
-  - 100% clean bottom edge with zero obstructive controls.
-  - **TopStatusBar**: Care Points pill (gold coin icon), Diamonds pill (cyan gem icon), Level & XP progress bar, Bio-Load filtration meter with color-shifting bar (Green $>75\%$, Amber $40\%\dots74\%$, Red $<40\%$), and compact Settings button.
-  - **Right-Hand Vertical Dock**:
-    - Daily Bonus gift icon with red notification dot.
-    - **Feed Button**: Drops 3 floating food pellets into top of tank with 2.0s cooldown indicator.
-    - **Maintain Button**: Toggles slide-out maintenance drawer.
-    - **Catalog Button**: Opens progression & fish shop modal bottom sheet.
-  - **Slide-Out Maintain Drawer**: Displays 3 active `MaintenanceAction` tiles with cleaning bonuses, rewards, and clean sweep particle animation triggers.
-  - **Catalog Modal Bottom Sheet**: Tabbed progression sheet displaying Tank Tiers (`BOWL` to `MEGA_TANK`) and Fish Species store.
+- [x] **Catalog Modal Bottom Sheet ([`ui/CatalogSheet.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/CatalogSheet.kt))**:
+  - **Tanks & Exhibits Tab**: Vertical listing of all 7 `TankTier` stages (`BOWL` $\rightarrow$ `MEGA_TANK`), displaying preview badges, water capacity, max fish count, unlock cost, and "Switch / Unlock" buttons.
+  - **Fish & Creatures Tab**: Compatible species store for the active tank tier plus locked preview badges for higher-tier species (e.g. Scalloped Hammerhead and Giant Manta Ray). Buying fish checks tank capacity and deducts Care Points.
+- [x] **Non-Punishing Care & Bio-Load Economy Loop**:
+  - Fish never die from neglect.
+  - High bio-load balance ($>80\%$) grants a $2.0\times$ Care Points multiplier and triggers sparkling water particle effects.
+  - Low bio-load balance ($<30\%$) applies a $0.5\times$ rate and renders a subtle greenish-murky water tint overlay.
+- [x] **Hybrid DataStore + Railway Repository ([`data/AquariumRepository.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/data/AquariumRepository.kt))**:
+  - Jetpack DataStore Preferences for local 0ms offline-first persistence.
+  - `fetchRemoteConfig()`: Pulls live game balance parameters from Railway `/api/config` on startup with fallback defaults.
+  - `syncPlayerStateToRailway()`: Debounced background `POST /api/sync` calls when buying fish, unlocking tanks, or app pause (`ON_STOP`).
+- [x] **ViewModel Architecture ([`viewmodel/AquariumViewModel.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/viewmodel/AquariumViewModel.kt))**:
+  - `StateFlow<AquariumUiState>` exposing unidirectional data flow to Jetpack Compose UI.
 - [x] **60 FPS Jetpack Compose 2D Mesh Simulation Engine ([`engine/AquariumEngine.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/engine/AquariumEngine.kt))**:
   - `Canvas.drawVertices()` 2D mesh skinning in `VertexMode.TriangleStrip` (20 columns / 42 vertices).
   - Travelling sine wave spine deformation, vertical steering curve, and 250ms direction flip.
   - Boids flocking algorithm for schooling fish.
   - Sinking food pellets, feeding consumption, and floating text popups.
   - Concentric glass tap ripples, clean-view HUD toggle, and startled/curious fish reaction.
-  - Atmospheric water layer with caustic light shafts and rising bubbles.
+  - Atmospheric water layer with caustic light shafts, rising bubbles, murky water tint, and sparkling water dots.
 - [x] **Unit Testing Suite**:
-  - [`AquariumModelsTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumModelsTest.kt) and [`AquariumEngineTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumEngineTest.kt) (8 unit tests passing).
-
----
-
-## Next Steps
-- [ ] Implement `DataStoreRepository` for persistent game save/load on Android client.
-- [ ] Connect Android client to Railway REST API (`/api/sync` and `/api/config`).
+  - 11 unit tests passing across [`AquariumModelsTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumModelsTest.kt), [`AquariumEngineTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumEngineTest.kt), and [`AquariumRepositoryTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumRepositoryTest.kt).
