@@ -12,10 +12,20 @@
 
 ---
 
-## Current Phase: 60 FPS Mesh Engine, Dark-Ocean HUD & Cloud Economy Operational
+## Current Phase: Procedural Audio, Haptics, Settings & Mesh Simulation Complete
 
-### Implemented Components & Bug Fixes
-- [x] **Crash Fix**: Resolved `java.lang.IllegalArgumentException: positions and colors lengths must match` in `drawFishMesh` ([`ui/AquariumCanvas.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/AquariumCanvas.kt)) by passing matching color array size (`colors = List(numVertices) { Color.White }`).
+### Implemented Components & Features
+- [x] **Zero-Asset Procedural Audio Synthesizer ([`audio/AquariumAudioManager.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/audio/AquariumAudioManager.kt))**:
+  - `playGlassTap()`: 140Hz decaying low-mid underwater glass thud with 420Hz harmonic decay.
+  - `playBubblePop()`: Upward chirping water droplet frequency sweep (450Hz to 900Hz over 60ms).
+  - `playMaintenanceSwoosh()`: Soft filtered white-noise water rush envelope (260ms).
+  - `playRewardChime()`: Warm harmonic triad chime (C5, E5, G5) with smooth decay for tank unlocks and daily bonuses.
+- [x] **Tactile Haptic Feedback**:
+  - `HapticFeedbackType.TextHandleMove` triggered on glass taps.
+  - `HapticFeedbackType.LongPress` triggered on startled fish bursts and new tank unlocks.
+- [x] **Settings & Debug Dialog ([`ui/SettingsDialog.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/SettingsDialog.kt))**:
+  - Frosted glass dialog with switches for Sound Effects, Haptics, and Live FPS / Debug Overlay.
+  - "Reset Save Data (Closed Testing)" button with confirmation dialog.
 - [x] **Catalog Modal Bottom Sheet ([`ui/CatalogSheet.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/CatalogSheet.kt))**:
   - **Tanks & Exhibits Tab**: Vertical listing of all 7 `TankTier` stages (`BOWL` $\rightarrow$ `MEGA_TANK`), displaying preview badges, water capacity, max fish count, unlock cost, and "Switch / Unlock" buttons.
   - **Fish & Creatures Tab**: Compatible species store for the active tank tier plus locked preview badges for higher-tier species (e.g. Scalloped Hammerhead and Giant Manta Ray). Buying fish checks tank capacity and deducts Care Points.
@@ -37,4 +47,4 @@
   - Concentric glass tap ripples, clean-view HUD toggle, and startled/curious fish reaction.
   - Atmospheric water layer with caustic light shafts, rising bubbles, murky water tint, and sparkling water dots.
 - [x] **Unit Testing Suite**:
-  - 11 unit tests passing across [`AquariumModelsTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumModelsTest.kt), [`AquariumEngineTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumEngineTest.kt), and [`AquariumRepositoryTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumRepositoryTest.kt).
+  - 12 unit tests passing across [`AquariumModelsTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumModelsTest.kt), [`AquariumEngineTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumEngineTest.kt), [`AquariumRepositoryTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumRepositoryTest.kt), and [`AquariumAudioTest.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/test/java/com/wcsurface/bowltoocean/AquariumAudioTest.kt).
