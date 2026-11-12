@@ -12,18 +12,18 @@
 
 ---
 
-## Current Phase: Direct Resource Binding, White Pixel Stripping & Bowl Clipping Complete
+## Current Phase: Direct ImageBitmap.imageResource Loading & Software ARGB_8888 White Pixel Removal Complete
 
-### Root Cause Fixes Implemented
-- [x] **Direct Resource ID Binding ([`AquariumModels.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/model/AquariumModels.kt))**:
-  - Bound `@DrawableRes val backgroundResId = R.drawable.bg_tank_1_bowl` directly to `TankTier.BOWL`.
-  - Bound `@DrawableRes val drawableResId = R.drawable.fish_betta_blue` directly to `FishSpecies.betta_blue`.
-- [x] **Direct BitmapFactory Decoding & White Pixel Removal ([`AssetResolver.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/util/AssetResolver.kt))**:
-  - Deleted the geometric circle bowl & blue oval fallback drawing code.
-  - Loads real bitmaps directly via `BitmapFactory.decodeResource(context.resources, resId, ...)` with `ARGB_8888`.
-  - Automatically loops through pixels once and strips near-white background pixels (`red > 235 && green > 235 && blue > 235`) to `Color.TRANSPARENT`.
-- [x] **Orientation & Bowl Circle Clipping ([`ui/AquariumCanvas.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/AquariumCanvas.kt))**:
-  - Corrected raw Betta orientation ($u = 0$ is Head on left, $u = 1$ is Tail on right; head is kept steady while $u^{1.6}$ undulates the tail).
-  - Clipped caustic light shafts and rising air bubbles strictly inside the glass bowl circle (`center = (width * 0.5f, height * 0.48f)`, `radius = height * 0.45f`), preventing light spilling onto the room background outside the bowl.
+### Implemented Hard-Fail Pipeline
+- [x] **Direct Compose Resource Loader ([`ui/AquariumCanvas.kt`](file:///G:/My%20Drive/APPS/BowltoOcean/app/src/main/java/com/wcsurface/bowltoocean/ui/AquariumCanvas.kt))**:
+  - `val bowlBitmap = ImageBitmap.imageResource(id = R.drawable.bg_tank_1_bowl)`
+  - `val rawBettaBitmap = ImageBitmap.imageResource(id = R.drawable.fish_betta_blue)`
+  - Direct 100% canvas rendering: `drawImage(bowlBitmap, dstSize = IntSize(width, height))`.
+- [x] **Software ARGB_8888 Pixel Stripper**:
+  - `rawBettaBitmap.asAndroidBitmap().copy(Bitmap.Config.ARGB_8888, true)` converts hardware bitmap to mutable software ARGB_8888 array.
+  - Loops over pixels to set white/near-white pixels ($r > 235 \land g > 235 \land b > 235 \implies 0$) to transparent.
+  - Converts back to `ImageBitmap` via `.asImageBitmap()` inside `remember(rawBettaBitmap)`.
+- [x] **Hero Betta Canvas.drawVertices Rendering**:
+  - Processed `bettaBitmap` passed directly to `drawFishMesh` for 2D mesh skinning animation.
 - [x] **Unit Testing Suite**:
   - All 12 unit tests passing across test suite.
