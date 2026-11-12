@@ -146,7 +146,7 @@ data class FishSpecies(
                 cost = 50L,
                 basePointsPerMin = 12,
                 bioLoadWeight = 1,
-                scale = 1.0f,
+                scale = 1.8f,
                 swimSpeed = 1.2f,
                 waveFrequency = 2.5f,
                 waveAmplitude = 12.0f,

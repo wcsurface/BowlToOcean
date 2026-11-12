@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,62 +26,247 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wcsurface.bowltoocean.engine.AquariumEngine
-import com.wcsurface.bowltoocean.model.FishSpecies
-import com.wcsurface.bowltoocean.model.TankTier
+import com.wcsurface.bowltoocean.model.MaintenanceAction
 
 /**
- * TopStatusBar displaying Care Points, Diamonds, Player Level/XP, and Bio-Load filtration meter.
+ * Reusable translucent Aqua-Glass panel with luminous cyan border.
  */
+@Composable
+fun AquaGlassPanel(
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(18.dp),
+    content: @Composable () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xAA13384C),
+                        Color(0x880B2230)
+                    )
+                )
+            )
+            .border(
+                border = BorderStroke(1.dp, Color(0x667CE8FF)),
+                shape = shape
+            )
+    ) {
+        content()
+    }
+}
+
+// --- Custom Canvas Drawn Aquarium Icons ---
+
+@Composable
+fun FeedShakerIcon(tint: Color = Color(0xFF7CE8FF), modifier: Modifier = Modifier.size(24.dp)) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+
+        // Shaker body tilted 25 degrees
+        val bodyPath = Path().apply {
+            moveTo(w * 0.35f, h * 0.25f)
+            lineTo(w * 0.75f, h * 0.25f)
+            lineTo(w * 0.70f, h * 0.75f)
+            lineTo(w * 0.40f, h * 0.75f)
+            close()
+        }
+        drawPath(path = bodyPath, color = tint.copy(alpha = 0.85f))
+
+        // Cap
+        drawRect(
+            color = tint,
+            topLeft = Offset(w * 0.32f, h * 0.18f),
+            size = Size(w * 0.46f, h * 0.08f)
+        )
+
+        // Dropping flakes
+        drawCircle(color = Color(0xFFFFD700), radius = 2f, center = Offset(w * 0.25f, h * 0.85f))
+        drawCircle(color = Color(0xFFFFD700), radius = 2.5f, center = Offset(w * 0.40f, h * 0.92f))
+        drawCircle(color = Color(0xFFFFD700), radius = 2f, center = Offset(w * 0.55f, h * 0.82f))
+    }
+}
+
+@Composable
+fun MaintainSpongeIcon(tint: Color = Color(0xFF38B0A0), modifier: Modifier = Modifier.size(24.dp)) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+
+        // Sponge rectangle
+        drawRoundRect(
+            color = tint.copy(alpha = 0.9f),
+            topLeft = Offset(w * 0.18f, h * 0.30f),
+            size = Size(w * 0.64f, h * 0.45f),
+            cornerRadius = CornerRadius(4f, 4f)
+        )
+
+        // Sponge pores/dots
+        drawCircle(color = Color.Black.copy(alpha = 0.3f), radius = 1.8f, center = Offset(w * 0.32f, h * 0.45f))
+        drawCircle(color = Color.Black.copy(alpha = 0.3f), radius = 2.2f, center = Offset(w * 0.52f, h * 0.52f))
+        drawCircle(color = Color.Black.copy(alpha = 0.3f), radius = 1.8f, center = Offset(w * 0.68f, h * 0.42f))
+
+        // Bubbles around sponge
+        drawCircle(color = Color.White.copy(alpha = 0.8f), radius = 2.5f, center = Offset(w * 0.15f, h * 0.22f), style = Stroke(1.5f))
+        drawCircle(color = Color.White.copy(alpha = 0.8f), radius = 3.5f, center = Offset(w * 0.82f, h * 0.25f), style = Stroke(1.5f))
+    }
+}
+
+@Composable
+fun CatalogBookIcon(tint: Color = Color(0xFFFFD700), modifier: Modifier = Modifier.size(24.dp)) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+
+        // Left page
+        val leftPage = Path().apply {
+            moveTo(w * 0.10f, h * 0.30f)
+            lineTo(w * 0.48f, h * 0.22f)
+            lineTo(w * 0.48f, h * 0.78f)
+            lineTo(w * 0.10f, h * 0.85f)
+            close()
+        }
+        drawPath(path = leftPage, color = tint.copy(alpha = 0.8f))
+
+        // Right page
+        val rightPage = Path().apply {
+            moveTo(w * 0.52f, h * 0.22f)
+            lineTo(w * 0.90f, h * 0.30f)
+            lineTo(w * 0.90f, h * 0.85f)
+            lineTo(w * 0.52f, h * 0.78f)
+            close()
+        }
+        drawPath(path = rightPage, color = tint)
+
+        // Center spine line
+        drawLine(color = Color.Black.copy(alpha = 0.5f), start = Offset(w * 0.5f, h * 0.20f), end = Offset(w * 0.5f, h * 0.80f), strokeWidth = 2f)
+    }
+}
+
+@Composable
+fun BucketIcon(tint: Color = Color(0xFF00D2FF), modifier: Modifier = Modifier.size(22.dp)) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+
+        val bucketPath = Path().apply {
+            moveTo(w * 0.20f, h * 0.30f)
+            lineTo(w * 0.80f, h * 0.30f)
+            lineTo(w * 0.70f, h * 0.85f)
+            lineTo(w * 0.30f, h * 0.85f)
+            close()
+        }
+        drawPath(path = bucketPath, color = tint.copy(alpha = 0.85f))
+
+        // Bucket handle arch
+        drawArc(
+            color = tint,
+            startAngle = 180f,
+            sweepAngle = 180f,
+            useCenter = false,
+            topLeft = Offset(w * 0.20f, h * 0.12f),
+            size = Size(w * 0.60f, h * 0.35f),
+            style = Stroke(2f, cap = StrokeCap.Round)
+        )
+    }
+}
+
+@Composable
+fun SqueegeeIcon(tint: Color = Color(0xFF38B0A0), modifier: Modifier = Modifier.size(22.dp)) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+
+        // Wiper blade top bar
+        drawRoundRect(color = tint, topLeft = Offset(w * 0.12f, h * 0.22f), size = Size(w * 0.76f, h * 0.12f), cornerRadius = CornerRadius(2f, 2f))
+
+        // Squeegee handle
+        drawLine(color = tint, start = Offset(w * 0.5f, h * 0.34f), end = Offset(w * 0.5f, h * 0.85f), strokeWidth = 3.5f, cap = StrokeCap.Round)
+    }
+}
+
+@Composable
+fun TestTubeIcon(tint: Color = Color(0xFFFFD700), modifier: Modifier = Modifier.size(22.dp)) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+
+        // Test tube outline
+        val tubePath = Path().apply {
+            moveTo(w * 0.38f, h * 0.15f)
+            lineTo(w * 0.62f, h * 0.15f)
+            lineTo(w * 0.62f, h * 0.75f)
+            arcTo(rect = androidx.compose.ui.geometry.Rect(w * 0.38f, h * 0.65f, w * 0.62f, h * 0.88f), startAngleDegrees = 0f, sweepAngleDegrees = 180f, forceMoveTo = false)
+            lineTo(w * 0.38f, h * 0.15f)
+            close()
+        }
+        drawPath(path = tubePath, color = tint.copy(alpha = 0.3f), style = Stroke(1.8f))
+
+        // Liquid inside tube
+        val liquidPath = Path().apply {
+            moveTo(w * 0.40f, h * 0.45f)
+            lineTo(w * 0.60f, h * 0.45f)
+            lineTo(w * 0.60f, h * 0.72f)
+            arcTo(rect = androidx.compose.ui.geometry.Rect(w * 0.40f, h * 0.62f, w * 0.60f, h * 0.85f), startAngleDegrees = 0f, sweepAngleDegrees = 180f, forceMoveTo = false)
+            lineTo(w * 0.40f, h * 0.45f)
+            close()
+        }
+        drawPath(path = liquidPath, color = tint)
+    }
+}
+
+// --- Top StatusBar Composable ---
+
 @Composable
 fun TopStatusBar(
     engine: AquariumEngine,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    AquaGlassPanel(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xCC0A1428))
-            .border(BorderStroke(1.dp, Color(0x3300D2FF)), RoundedCornerShape(16.dp))
-            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(20.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -92,24 +278,40 @@ fun TopStatusBar(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
                         .background(Color(0x66000000))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.MonetizationOn,
                         contentDescription = "Care Points",
                         tint = Color(0xFFFFD700),
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "${engine.carePoints}",
                         color = Color.White,
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x33FFD700))
+                            .clickable { engine.isShopSheetOpen = true },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Add Points",
+                            tint = Color(0xFFFFD700),
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
                 // Diamonds Pill
                 Row(
@@ -117,21 +319,37 @@ fun TopStatusBar(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
                         .background(Color(0x66000000))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Diamond,
                         contentDescription = "Diamonds",
-                        tint = Color(0xFF00D2FF),
-                        modifier = Modifier.size(18.dp)
+                        tint = Color(0xFF7CE8FF),
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "${engine.diamonds}",
                         color = Color.White,
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x3300D2FF))
+                            .clickable { engine.claimDailyBonus() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Add Diamonds",
+                            tint = Color(0xFF7CE8FF),
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
                 }
             }
 
@@ -139,59 +357,70 @@ fun TopStatusBar(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(14.dp))
                     .background(Color(0x66000000))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .padding(horizontal = 12.dp, vertical = 5.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Star,
                     contentDescription = "Level",
                     tint = Color(0xFFFFC107),
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "Lv. ${engine.playerLevel}",
                     color = Color.White,
-                    fontSize = 12.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+
                 val xpProgress = (engine.playerXp.toFloat() / engine.xpToNextLevel.toFloat()).coerceIn(0f, 1f)
-                LinearProgressIndicator(
-                    progress = { xpProgress },
-                    modifier = Modifier
-                        .width(50.dp)
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(3.dp)),
-                    color = Color(0xFF00D2FF),
-                    trackColor = Color(0x33FFFFFF)
-                )
+                Column {
+                    LinearProgressIndicator(
+                        progress = { xpProgress },
+                        modifier = Modifier
+                            .width(75.dp)
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
+                        color = Color(0xFF7CE8FF),
+                        trackColor = Color(0x33FFFFFF)
+                    )
+                    Text(
+                        text = "${engine.playerXp}/${engine.xpToNextLevel}",
+                        color = Color(0xFF8B949E),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
 
-            // --- Right Gauge: Bio-Load / Filtration Balance Meter ---
+            // --- Right Gauge: Bio-Load / Tank Status Balance Meter ---
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
                         .background(Color(0x66000000))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.WaterDrop,
-                        contentDescription = "Bio-Load Filtration",
-                        tint = Color(0xFF00D2FF),
-                        modifier = Modifier.size(18.dp)
+                        contentDescription = "Tank Status",
+                        tint = Color(0xFF7CE8FF),
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "${engine.bioLoadBalance.toInt()}%",
                         color = Color.White,
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
 
                     val barColor = when {
                         engine.bioLoadBalance >= 75f -> Color(0xFF4CAF50) // Green
@@ -202,7 +431,7 @@ fun TopStatusBar(
                     LinearProgressIndicator(
                         progress = { (engine.bioLoadBalance / 100f).coerceIn(0f, 1f) },
                         modifier = Modifier
-                            .width(45.dp)
+                            .width(60.dp)
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
                         color = barColor,
@@ -210,17 +439,17 @@ fun TopStatusBar(
                     )
                 }
 
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(8.dp))
 
                 IconButton(
                     onClick = { engine.isSettingsOpen = true },
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Settings,
                         contentDescription = "Settings",
                         tint = Color.White,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
@@ -229,7 +458,7 @@ fun TopStatusBar(
 }
 
 /**
- * Slide-Out Maintenance Drawer displaying the 3 MaintenanceAction tiles for active TankTier.
+ * Slide-Out Maintain Drawer containing Water Change, Clean Glass, and Check Water action tiles.
  */
 @Composable
 fun MaintainDrawer(
@@ -238,18 +467,19 @@ fun MaintainDrawer(
 ) {
     val tier = engine.currentTankTier
 
-    Box(
+    AquaGlassPanel(
         modifier = modifier
-            .width(220.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xEE0A1428))
-            .border(BorderStroke(1.dp, Color(0x3300D2FF)), RoundedCornerShape(20.dp))
-            .padding(12.dp)
+            .width(230.dp)
+            .padding(8.dp),
+        shape = RoundedCornerShape(22.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(12.dp)
+        ) {
             Text(
                 text = "${tier.tierName} Maintenance",
-                color = Color(0xFF00D2FF),
+                color = Color(0xFF7CE8FF),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -258,30 +488,40 @@ fun MaintainDrawer(
 
             for (action in tier.maintenanceActions) {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0x66122240)),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color(0x22FFFFFF)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0x4413384C)),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, Color(0x337CE8FF)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(8.dp)) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            when {
+                                action.name.contains("Water") -> BucketIcon(tint = Color(0xFF00D2FF))
+                                action.name.contains("Glass") || action.name.contains("Clean") -> SqueegeeIcon(tint = Color(0xFF38B0A0))
+                                else -> TestTubeIcon(tint = Color(0xFFFFD700))
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = action.name,
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = action.name,
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "Clean: +${action.cleanBonus.toInt()}% | XP: +35",
+                            text = "Clean: +${action.cleanBonus.toInt()}% | Reward: +${action.rewardPoints} pts",
                             color = Color(0xFF38B0A0),
                             fontSize = 11.sp
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
+
                         Button(
                             onClick = { engine.performMaintenanceAction(action) },
                             enabled = engine.carePoints >= action.cost,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF00D2FF),
+                                containerColor = Color(0xFF7CE8FF),
                                 contentColor = Color.Black
                             ),
                             shape = RoundedCornerShape(8.dp),
@@ -290,7 +530,7 @@ fun MaintainDrawer(
                                 .height(32.dp)
                         ) {
                             Text(
-                                text = "Clean (${action.cost} pts)",
+                                text = "Perform (${action.cost} pts)",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -303,7 +543,7 @@ fun MaintainDrawer(
 }
 
 /**
- * RightDock & Daily Bonus floating controls stacked on right edge.
+ * RightDock floating controls with custom Canvas-drawn aquarium icons.
  */
 @Composable
 fun RightDock(
@@ -341,87 +581,70 @@ fun RightDock(
             }
         }
 
-        // Right-hand Frosted Glass Action Dock
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xCC0A1428))
-                .border(BorderStroke(1.dp, Color(0x3300D2FF)), RoundedCornerShape(24.dp))
-                .padding(vertical = 12.dp, horizontal = 8.dp)
-        ) {
-            // Feed Action Button
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                IconButton(
-                    onClick = { engine.triggerFeedAction() },
-                    enabled = engine.feedCooldownTimer <= 0f,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(if (engine.feedCooldownTimer <= 0f) Color(0x3300D2FF) else Color(0x11FFFFFF))
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Restaurant,
-                        contentDescription = "Feed",
-                        tint = if (engine.feedCooldownTimer <= 0f) Color(0xFF00D2FF) else Color.Gray,
-                        modifier = Modifier.size(22.dp)
+        // Right-hand Aqua-Glass Action Dock
+        AquaGlassPanel(shape = RoundedCornerShape(26.dp)) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+                modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp)
+            ) {
+                // Feed Action Button
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconButton(
+                        onClick = { engine.triggerFeedAction() },
+                        enabled = engine.feedCooldownTimer <= 0f,
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(if (engine.feedCooldownTimer <= 0f) Color(0x3300D2FF) else Color(0x11FFFFFF))
+                    ) {
+                        FeedShakerIcon(tint = if (engine.feedCooldownTimer <= 0f) Color(0xFF7CE8FF) else Color.Gray)
+                    }
+                    Text(
+                        text = if (engine.feedCooldownTimer > 0f) "${engine.feedCooldownTimer.toInt()}s" else "Feed",
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
-                Text(
-                    text = if (engine.feedCooldownTimer > 0f) "${engine.feedCooldownTimer.toInt()}s" else "Feed",
-                    color = Color.White,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
 
-            // Maintain Action Button
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                IconButton(
-                    onClick = { engine.isMaintainDrawerOpen = !engine.isMaintainDrawerOpen },
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(Color(0x3338B0A0))
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.CleaningServices,
-                        contentDescription = "Maintain",
-                        tint = Color(0xFF38B0A0),
-                        modifier = Modifier.size(22.dp)
+                // Maintain Action Button
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconButton(
+                        onClick = { engine.isMaintainDrawerOpen = !engine.isMaintainDrawerOpen },
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x3338B0A0))
+                    ) {
+                        MaintainSpongeIcon(tint = Color(0xFF38B0A0))
+                    }
+                    Text(
+                        text = "Maintain",
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
-                Text(
-                    text = "Maintain",
-                    color = Color.White,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
 
-            // Catalog / Shop Action Button
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                IconButton(
-                    onClick = { engine.isShopSheetOpen = true },
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(Color(0x33FFD700))
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Store,
-                        contentDescription = "Catalog",
-                        tint = Color(0xFFFFD700),
-                        modifier = Modifier.size(22.dp)
+                // Catalog / Shop Action Button
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconButton(
+                        onClick = { engine.isShopSheetOpen = true },
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x33FFD700))
+                    ) {
+                        CatalogBookIcon(tint = Color(0xFFFFD700))
+                    }
+                    Text(
+                        text = "Catalog",
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
-                Text(
-                    text = "Catalog",
-                    color = Color.White,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
             }
         }
     }

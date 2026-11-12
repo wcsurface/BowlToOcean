@@ -116,20 +116,29 @@ class AquariumEngine(
         fishList.clear()
         val availableSpecies = FishSpecies.ALL_SPECIES.filter { it.tierRequired <= tier }
         val count = tier.maxFish.coerceAtMost(availableSpecies.size)
+
+        val minX = if (tier == TankTier.BOWL) 0.25f else 0.08f
+        val maxX = if (tier == TankTier.BOWL) 0.75f else 0.92f
+        val minY = if (tier == TankTier.BOWL) 0.25f else 0.12f
+        val maxY = if (tier == TankTier.BOWL) 0.72f else 0.82f
+
         for (i in 0 until count) {
             val species = availableSpecies[i % availableSpecies.size]
+            val initX = if (tier == TankTier.BOWL && i == 0) 0.5f else minX + Random.nextFloat() * (maxX - minX)
+            val initY = if (tier == TankTier.BOWL && i == 0) 0.48f else minY + Random.nextFloat() * (maxY - minY)
+
             fishList.add(
                 FishInstance(
                     instanceId = "fish_${species.id}_$i",
                     speciesId = species.id,
-                    x = 0.2f + Random.nextFloat() * 0.6f,
-                    y = 0.2f + Random.nextFloat() * 0.5f,
-                    vx = (Random.nextFloat() - 0.5f) * 0.1f,
-                    vy = (Random.nextFloat() - 0.5f) * 0.1f,
+                    x = initX,
+                    y = initY,
+                    vx = (Random.nextFloat() - 0.5f) * 0.08f,
+                    vy = (Random.nextFloat() - 0.5f) * 0.08f,
                     facingRight = Random.nextBoolean(),
                     aiState = AiState.CRUISING,
-                    targetX = 0.2f + Random.nextFloat() * 0.6f,
-                    targetY = 0.2f + Random.nextFloat() * 0.5f
+                    targetX = initX,
+                    targetY = initY
                 )
             )
         }
@@ -469,11 +478,16 @@ class AquariumEngine(
                 }
 
                 AiState.CRUISING -> {
+                    val minX = if (currentTankTier == TankTier.BOWL) 0.25f else 0.08f
+                    val maxX = if (currentTankTier == TankTier.BOWL) 0.75f else 0.92f
+                    val minY = if (currentTankTier == TankTier.BOWL) 0.25f else 0.12f
+                    val maxY = if (currentTankTier == TankTier.BOWL) 0.72f else 0.82f
+
                     val distToTarget = sqrt((fish.targetX - fish.x) * (fish.targetX - fish.x) + (fish.targetY - fish.y) * (fish.targetY - fish.y))
                     if (distToTarget < 0.06f || fish.stateTimer <= 0f) {
-                        // Waypoint selection within safe margins (8%..92% X, 12%..82% Y)
-                        fish.targetX = 0.08f + Random.nextFloat() * 0.84f
-                        fish.targetY = 0.12f + Random.nextFloat() * 0.70f
+                        // Waypoint selection within safe margins
+                        fish.targetX = minX + Random.nextFloat() * (maxX - minX)
+                        fish.targetY = minY + Random.nextFloat() * (maxY - minY)
                         fish.stateTimer = 3f + Random.nextFloat() * 4f
                     }
 
@@ -511,12 +525,17 @@ class AquariumEngine(
                             cohereX = (cohereX / neighborCount) - fish.x
                             cohereY = (cohereY / neighborCount) - fish.y
 
-                            fish.targetX = (fish.targetX + cohereX * 0.2f + separateX * 0.3f).coerceIn(0.08f, 0.92f)
-                            fish.targetY = (fish.targetY + cohereY * 0.2f + separateY * 0.3f).coerceIn(0.12f, 0.82f)
+                            fish.targetX = (fish.targetX + cohereX * 0.2f + separateX * 0.3f).coerceIn(minX, maxX)
+                            fish.targetY = (fish.targetY + cohereY * 0.2f + separateY * 0.3f).coerceIn(minY, maxY)
                         }
                     }
                 }
             }
+
+            val minX = if (currentTankTier == TankTier.BOWL) 0.25f else 0.08f
+            val maxX = if (currentTankTier == TankTier.BOWL) 0.75f else 0.92f
+            val minY = if (currentTankTier == TankTier.BOWL) 0.25f else 0.12f
+            val maxY = if (currentTankTier == TankTier.BOWL) 0.72f else 0.82f
 
             // 4. Movement Kinematics
             val dx = fish.targetX - fish.x
@@ -541,8 +560,8 @@ class AquariumEngine(
                 fish.vy += (targetVy - fish.vy) * 0.1f
             }
 
-            fish.x = (fish.x + fish.vx).coerceIn(0.08f, 0.92f)
-            fish.y = (fish.y + fish.vy).coerceIn(0.12f, 0.82f)
+            fish.x = (fish.x + fish.vx).coerceIn(minX, maxX)
+            fish.y = (fish.y + fish.vy).coerceIn(minY, maxY)
 
             if (kotlin.math.abs(fish.vx) > 0.002f) {
                 fish.facingRight = fish.vx > 0f
